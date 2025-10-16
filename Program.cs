@@ -68,12 +68,19 @@ namespace Products_Management
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             
             // Debug: Log the connection string format
-            Console.WriteLine($"Raw connection string: {connectionString}");
+            Console.WriteLine($"Raw connection string from config: {connectionString}");
+            
+            // Check if we need to get DATABASE_URL from environment variables directly
+            if (string.IsNullOrEmpty(connectionString) || connectionString == "${DATABASE_URL}")
+            {
+                connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+                Console.WriteLine($"DATABASE_URL from environment: {connectionString?.Substring(0, Math.Min(50, connectionString?.Length ?? 0))}...");
+            }
             
             // Ensure we have a valid connection string
             if (string.IsNullOrEmpty(connectionString))
             {
-                throw new InvalidOperationException("Database connection string is null or empty");
+                throw new InvalidOperationException("Database connection string is null or empty. Check DATABASE_URL environment variable.");
             }
             
             // For NeonDB on Render, we need to parse the DATABASE_URL if it's in that format
@@ -109,7 +116,7 @@ namespace Products_Management
                 throw new InvalidOperationException($"Unknown connection string format: {connectionString.Substring(0, Math.Min(20, connectionString.Length))}");
             }
             
-            Console.WriteLine($"Final connection string: {connectionString}");
+            Console.WriteLine($"Final connection string: {connectionString.Substring(0, Math.Min(50, connectionString.Length))}...");
             
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(connectionString));

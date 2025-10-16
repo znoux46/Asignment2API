@@ -1,7 +1,7 @@
 services:
   - type: web
     name: products-management-api
-    env: dotnet
+    runtime: dotnet
     plan: free
     buildCommand: dotnet publish -c Release -o out
     startCommand: dotnet out/Products_Management.dll

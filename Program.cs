@@ -88,16 +88,28 @@ namespace Products_Management
             {
                 try
                 {
-                    // Parse DATABASE_URL format: postgres://username:password@host:port/database
+                    // Parse DATABASE_URL format: postgresql://username:password@host:port/database
                     var uri = new Uri(connectionString);
                     var username = uri.UserInfo.Split(':')[0];
                     var password = uri.UserInfo.Split(':')[1];
                     var host = uri.Host;
-                    var port = uri.Port;
+                    var port = uri.Port > 0 ? uri.Port : 5432; // Default to 5432 if port is not specified
                     var database = uri.AbsolutePath.TrimStart('/');
                     
-                    connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SslMode=Require";
-                    Console.WriteLine("Successfully parsed postgresql:// connection string");
+                    // Handle query parameters (like ?sslmode=require)
+                    var query = uri.Query;
+                    var sslMode = "Require";
+                    if (query.Contains("sslmode=require"))
+                    {
+                        sslMode = "Require";
+                    }
+                    else if (query.Contains("sslmode=prefer"))
+                    {
+                        sslMode = "Prefer";
+                    }
+                    
+                    connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SslMode={sslMode}";
+                    Console.WriteLine($"Successfully parsed postgresql:// connection string - Host: {host}, Port: {port}, Database: {database}");
                 }
                 catch (Exception ex)
                 {

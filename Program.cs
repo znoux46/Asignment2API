@@ -84,7 +84,7 @@ namespace Products_Management
             }
             
             // For NeonDB on Render, we need to parse the DATABASE_URL if it's in that format
-            if (connectionString.StartsWith("postgres://"))
+            if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://"))
             {
                 try
                 {
@@ -97,12 +97,12 @@ namespace Products_Management
                     var database = uri.AbsolutePath.TrimStart('/');
                     
                     connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SslMode=Require";
-                    Console.WriteLine("Successfully parsed postgres:// connection string");
+                    Console.WriteLine("Successfully parsed postgresql:// connection string");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error parsing postgres:// connection string: {ex.Message}");
-                    throw new InvalidOperationException($"Failed to parse postgres:// connection string: {ex.Message}");
+                    Console.WriteLine($"Error parsing postgresql:// connection string: {ex.Message}");
+                    throw new InvalidOperationException($"Failed to parse postgresql:// connection string: {ex.Message}");
                 }
             }
             else if (connectionString.StartsWith("Host="))

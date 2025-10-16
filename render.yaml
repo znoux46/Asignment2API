@@ -1,13 +1,14 @@
 services:
   - type: web
     name: products-management-api
-    runtime: dotnet
     plan: free
     buildCommand: dotnet publish -c Release -o out
     startCommand: dotnet out/Products_Management.dll
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
+      - key: DOTNET_VERSION
+        value: 8.0.0
       - key: DATABASE_URL
         fromDatabase:
           name: neondb

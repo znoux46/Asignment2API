@@ -80,7 +80,11 @@ namespace Products_Management.API
                 new Claim(ClaimTypes.Role, user.Role)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret));
+            // Use JWT Secret from environment variable if available (for production)
+            var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? _jwtSettings.Secret;
+            Console.WriteLine($"AuthService - Using JWT Secret length: {jwtSecret?.Length ?? 0}");
+            
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(

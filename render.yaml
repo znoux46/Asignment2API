@@ -1,6 +1,7 @@
 services:
-  - type: docker
+  - type: web
     name: products-management-api
+    env: docker
     dockerfilePath: Dockerfile.production
     plan: free
     envVars:

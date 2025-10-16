@@ -177,18 +177,21 @@ namespace Products_Management
             // Auto-migrate database in production
             if (app.Environment.IsProduction())
             {
-                using (var scope = app.Services.CreateScope())
+                try
                 {
-                    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                    try
+                    using (var scope = app.Services.CreateScope())
                     {
+                        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                        Console.WriteLine("Starting database migration...");
                         context.Database.Migrate();
                         Console.WriteLine("Database migration completed successfully.");
                     }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Database migration failed: {ex.Message}");
-                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Database migration failed: {ex.Message}");
+                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                    // Don't crash the app if migration fails, just log it
                 }
             }
 
@@ -208,6 +211,15 @@ namespace Products_Management
             app.UseAuthorization();
             app.MapControllers();
 
+            // Add a simple startup check endpoint
+            app.MapGet("/", () => "Products Management API is running!");
+            app.MapGet("/ping", () => new { 
+                status = "ok", 
+                timestamp = DateTime.UtcNow,
+                message = "API is responding"
+            });
+
+            Console.WriteLine("Application configuration completed. Starting server...");
             app.Run();
         }
     }

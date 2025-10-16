@@ -144,6 +144,18 @@ namespace Products_Management
             builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
             var jwtSettings = new JwtSettings();
             builder.Configuration.GetSection("Jwt").Bind(jwtSettings);
+            
+            // Override with environment variable if available (for production)
+            var jwtSecretFromEnv = Environment.GetEnvironmentVariable("JWT_SECRET");
+            if (!string.IsNullOrEmpty(jwtSecretFromEnv))
+            {
+                jwtSettings.Secret = jwtSecretFromEnv;
+                Console.WriteLine($"Using JWT Secret from environment variable, length: {jwtSecretFromEnv.Length}");
+            }
+            
+            // Debug: Log JWT secret length
+            Console.WriteLine($"JWT Secret length: {jwtSettings.Secret?.Length ?? 0}");
+            Console.WriteLine($"JWT Secret first 10 chars: {jwtSettings.Secret?.Substring(0, Math.Min(10, jwtSettings.Secret?.Length ?? 0))}...");
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

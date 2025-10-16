@@ -1,5 +1,5 @@
 services:
-  - type: web
+  - type: docker
     name: products-management-api
     dockerfilePath: Dockerfile.production
     plan: free

@@ -15,8 +15,15 @@ namespace Products_Management.API
         [HttpGet]
         public async Task<ActionResult<List<EntityResponse>>> GetAll()
         {
-            var entities = await _service.GetAllAsync();
-            return Ok(entities);
+            try
+            {
+                var entities = await _service.GetAllAsync();
+                return Ok(entities);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message, stackTrace = ex.StackTrace });
+            }
         }
         [HttpGet("{id}")]
         public async Task<ActionResult<EntityResponse>> GetById(int id)

@@ -11,8 +11,15 @@ namespace Products_Management.API
         [HttpPost("register")]
         public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
         {
-            var res = await _authService.RegisterAsync(request);
-            return Ok(res);
+            try
+            {
+                var res = await _authService.RegisterAsync(request);
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message, stackTrace = ex.StackTrace });
+            }
         }
 
         [HttpPost("login")]

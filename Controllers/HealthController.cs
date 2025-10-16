@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Products_Management.API
 {
@@ -6,6 +7,13 @@ namespace Products_Management.API
     [Route("api/health")]
     public class HealthController : ControllerBase
     {
+        private readonly ApplicationDbContext _dbContext;
+
+        public HealthController(ApplicationDbContext dbContext)
+        {
+            _dbContext = dbContext;
+        }
+
         [HttpGet]
         public IActionResult Get()
         {
@@ -30,6 +38,40 @@ namespace Products_Management.API
                 hasStripeSecretKey = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY")),
                 hasStripeWebhookSecret = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET"))
             });
+        }
+
+        [HttpGet("database")]
+        public async Task<IActionResult> GetDatabaseStatus()
+        {
+            try
+            {
+                // Test database connection
+                await _dbContext.Database.CanConnectAsync();
+                
+                // Check if tables exist
+                var entitiesTableExists = await _dbContext.Database.ExecuteSqlRawAsync(
+                    "SELECT 1 FROM information_schema.tables WHERE table_name = 'Entities'") >= 0;
+                
+                var usersTableExists = await _dbContext.Database.ExecuteSqlRawAsync(
+                    "SELECT 1 FROM information_schema.tables WHERE table_name = 'Users'") >= 0;
+
+                return Ok(new
+                {
+                    canConnect = true,
+                    entitiesTableExists = entitiesTableExists,
+                    usersTableExists = usersTableExists,
+                    connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")?.Substring(0, 50) + "..."
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    canConnect = false,
+                    error = ex.Message,
+                    connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")?.Substring(0, 50) + "..."
+                });
+            }
         }
     }
 }

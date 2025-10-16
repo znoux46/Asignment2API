@@ -145,6 +145,11 @@ namespace Products_Management
             var jwtSettings = new JwtSettings();
             builder.Configuration.GetSection("Jwt").Bind(jwtSettings);
             
+            // Debug: Log all environment variables
+            Console.WriteLine("=== ENVIRONMENT VARIABLES DEBUG ===");
+            Console.WriteLine($"JWT_SECRET from env: {Environment.GetEnvironmentVariable("JWT_SECRET")?.Substring(0, Math.Min(10, Environment.GetEnvironmentVariable("JWT_SECRET")?.Length ?? 0))}...");
+            Console.WriteLine($"JWT_SECRET length from env: {Environment.GetEnvironmentVariable("JWT_SECRET")?.Length ?? 0}");
+            
             // Override with environment variable if available (for production)
             var jwtSecretFromEnv = Environment.GetEnvironmentVariable("JWT_SECRET");
             if (!string.IsNullOrEmpty(jwtSecretFromEnv))
@@ -152,10 +157,15 @@ namespace Products_Management
                 jwtSettings.Secret = jwtSecretFromEnv;
                 Console.WriteLine($"Using JWT Secret from environment variable, length: {jwtSecretFromEnv.Length}");
             }
+            else
+            {
+                Console.WriteLine("JWT_SECRET environment variable is null or empty!");
+            }
             
             // Debug: Log JWT secret length
-            Console.WriteLine($"JWT Secret length: {jwtSettings.Secret?.Length ?? 0}");
-            Console.WriteLine($"JWT Secret first 10 chars: {jwtSettings.Secret?.Substring(0, Math.Min(10, jwtSettings.Secret?.Length ?? 0))}...");
+            Console.WriteLine($"Final JWT Secret length: {jwtSettings.Secret?.Length ?? 0}");
+            Console.WriteLine($"Final JWT Secret first 10 chars: {jwtSettings.Secret?.Substring(0, Math.Min(10, jwtSettings.Secret?.Length ?? 0))}...");
+            Console.WriteLine("=== END ENVIRONMENT VARIABLES DEBUG ===");
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

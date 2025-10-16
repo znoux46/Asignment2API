@@ -67,18 +67,38 @@ namespace Products_Management
             // PostgreSQL - Handle NeonDB connection string
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             
+            // Debug: Log the connection string format
+            Console.WriteLine($"Connection string format: {connectionString?.Substring(0, Math.Min(50, connectionString.Length ?? 0))}...");
+            
             // For NeonDB on Render, we need to parse the DATABASE_URL if it's in that format
             if (connectionString?.StartsWith("postgres://") == true)
             {
-                // Parse DATABASE_URL format: postgres://username:password@host:port/database
-                var uri = new Uri(connectionString);
-                var username = uri.UserInfo.Split(':')[0];
-                var password = uri.UserInfo.Split(':')[1];
-                var host = uri.Host;
-                var port = uri.Port;
-                var database = uri.AbsolutePath.TrimStart('/');
-                
-                connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SslMode=Require";
+                try
+                {
+                    // Parse DATABASE_URL format: postgres://username:password@host:port/database
+                    var uri = new Uri(connectionString);
+                    var username = uri.UserInfo.Split(':')[0];
+                    var password = uri.UserInfo.Split(':')[1];
+                    var host = uri.Host;
+                    var port = uri.Port;
+                    var database = uri.AbsolutePath.TrimStart('/');
+                    
+                    connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SslMode=Require";
+                    Console.WriteLine("Successfully parsed postgres:// connection string");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error parsing postgres:// connection string: {ex.Message}");
+                    // Keep original connection string if parsing fails
+                }
+            }
+            else if (connectionString?.StartsWith("Host=") == true)
+            {
+                Console.WriteLine("Using direct Host= connection string format");
+            }
+            else
+            {
+                Console.WriteLine($"Unknown connection string format: {connectionString?.Substring(0, Math.Min(20, connectionString?.Length ?? 0))}...");
             }
             
             builder.Services.AddDbContext<ApplicationDbContext>(options =>

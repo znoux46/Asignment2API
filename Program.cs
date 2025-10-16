@@ -64,9 +64,25 @@ namespace Products_Management
                     });
             });
 
-            // PostgreSQL
+            // PostgreSQL - Handle NeonDB connection string
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            
+            // For NeonDB on Render, we need to parse the DATABASE_URL if it's in that format
+            if (connectionString?.StartsWith("postgres://") == true)
+            {
+                // Parse DATABASE_URL format: postgres://username:password@host:port/database
+                var uri = new Uri(connectionString);
+                var username = uri.UserInfo.Split(':')[0];
+                var password = uri.UserInfo.Split(':')[1];
+                var host = uri.Host;
+                var port = uri.Port;
+                var database = uri.AbsolutePath.TrimStart('/');
+                
+                connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SslMode=Require";
+            }
+            
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseNpgsql(connectionString));
 
             // Repository + Service
             builder.Services.AddScoped<IEntityRepository, EntityRepository>();
@@ -108,6 +124,24 @@ namespace Products_Management
             builder.Services.AddSingleton(cloudinary);
 
             var app = builder.Build();
+
+            // Auto-migrate database in production
+            if (app.Environment.IsProduction())
+            {
+                using (var scope = app.Services.CreateScope())
+                {
+                    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                    try
+                    {
+                        context.Database.Migrate();
+                        Console.WriteLine("Database migration completed successfully.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Database migration failed: {ex.Message}");
+                    }
+                }
+            }
 
             // Swagger - bật cả trong Production
             app.UseSwagger();

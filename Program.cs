@@ -70,8 +70,14 @@ namespace Products_Management
             // Debug: Log the connection string format
             Console.WriteLine($"Raw connection string: {connectionString}");
             
+            // Ensure we have a valid connection string
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException("Database connection string is null or empty");
+            }
+            
             // For NeonDB on Render, we need to parse the DATABASE_URL if it's in that format
-            if (connectionString?.StartsWith("postgres://") == true)
+            if (connectionString.StartsWith("postgres://"))
             {
                 try
                 {
@@ -89,18 +95,21 @@ namespace Products_Management
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error parsing postgres:// connection string: {ex.Message}");
-                    // Keep original connection string if parsing fails
+                    throw new InvalidOperationException($"Failed to parse postgres:// connection string: {ex.Message}");
                 }
             }
-            else if (connectionString?.StartsWith("Host=") == true)
+            else if (connectionString.StartsWith("Host="))
             {
                 Console.WriteLine("Using direct Host= connection string format");
             }
             else
             {
-                Console.WriteLine($"Unknown connection string format, length: {connectionString?.Length}");
-                Console.WriteLine($"First 100 chars: {connectionString?.Substring(0, Math.Min(100, connectionString?.Length ?? 0))}");
+                Console.WriteLine($"Unknown connection string format, length: {connectionString.Length}");
+                Console.WriteLine($"First 100 chars: {connectionString.Substring(0, Math.Min(100, connectionString.Length))}");
+                throw new InvalidOperationException($"Unknown connection string format: {connectionString.Substring(0, Math.Min(20, connectionString.Length))}");
             }
+            
+            Console.WriteLine($"Final connection string: {connectionString}");
             
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(connectionString));

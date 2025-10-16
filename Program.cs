@@ -68,7 +68,7 @@ namespace Products_Management
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             
             // Debug: Log the connection string format
-            Console.WriteLine($"Connection string format: {connectionString?.Substring(0, Math.Min(50, connectionString.Length ?? 0))}...");
+            Console.WriteLine($"Connection string format: {connectionString?.Substring(0, Math.Min(50, connectionString?.Length ?? 0))}...");
             
             // For NeonDB on Render, we need to parse the DATABASE_URL if it's in that format
             if (connectionString?.StartsWith("postgres://") == true)

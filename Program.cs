@@ -58,7 +58,14 @@ namespace Products_Management
                 options.AddPolicy("AllowReactApp",
                     policy =>
                     {
-                        policy.WithOrigins("http://localhost:3000","https://asignment1-frontend-e1xm.vercel.app")
+                        policy.WithOrigins(
+                                "http://localhost:3000",
+                                "https://asignment1-frontend-e1xm.vercel.app",
+                                "https://asignment2-frontend.vercel.app"
+                              )
+                              .SetIsOriginAllowed(origin => 
+                                  origin.StartsWith("https://asignment2-frontend") && 
+                                  origin.EndsWith(".vercel.app"))
                               .AllowAnyHeader()
                               .AllowAnyMethod();
                     });
